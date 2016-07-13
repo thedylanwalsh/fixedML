@@ -65,7 +65,7 @@ about how I would build it today, and to utilise specific Java 8 features in dep
 
 Here is the Java:
 
-    package net.dylanwalsh.fixedML;
+    package com.fixedML;
 
     import static spark.Spark.*;
 
@@ -73,17 +73,14 @@ Here is the Java:
         public static void main(String[] args) {
             spark.Spark.staticFileLocation("/web");
 
-            // Demo 1: By default, opening this URL in your browser will return XML
-            //
-            // http://localhost:4567/echoTextWrappedInTags?text=Hello%20World
-            //
-            // Use view source in your browser to see the XML.
+            //Demo 1: By default, opening this URL in your browser will return XML:
+            //http://localhost:4567/echoTextWrappedInTags?text=Hello%20World
+            //Use view source in your browser to see the XML.
             get("/echoTextWrappedInTags", (req, res) ->
-                    {
-                        return "<?xml version=\"1.0\" encoding=\"UTF-8\"?><rootElement>"
-                                + req.queryParams("text")
-                                + "</rootElement>";
-                    }
+                    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+                            + "<rootElement>"
+                            + req.queryParams("text")
+                            + "</rootElement>"
             );
         }
     }
@@ -144,16 +141,12 @@ We need to add a utility method to Address2Xml.java:
 
 Now we can add it to the web server as a new operation:
 
-    //Demo 2: convert arbitrary XML to JSON using XSLT 1.0. Launch and open this URL in your browser:
-    //
-    //http://localhost:4567/xml2Json?xml=<positions><point3d><x>1</x><y>1</y><z>1</z></point3d><point3d><x>2</x><y>2</y><z>2</z></point3d></positions>
-    //
-    //Use view source in your browser to see the JSON.
-    get("/xml2Json", (req, res) ->
-            {
-                return transform(req.queryParams("xml"), new File("src/main/resources/xml2json.xslt"));
-            }
-    );
+        //Demo 2: convert arbitrary XML to JSON using XSLT 1.0. Launch and open this URL in your browser:
+        //http://localhost:4567/xml2json?xml=<positions><point3d><x>1</x><y>1</y><z>1</z></point3d><point3d><x>2</x><y>2</y><z>2</z></point3d></positions>
+        //Use view source in your browser to see the JSON.
+        get("/xml2json", (req, res) ->
+                transform(req.queryParams("xml"), new File("src/main/resources/xml2json.xslt"))
+        );
 
 Invoking that web service with this XML:
 
@@ -512,12 +505,16 @@ All that remains is to add a method to create the web service in the 'main()' me
 
 #Transform to HTML
 
-    //Demo 4: convert addresses in fixed width format to HTML.
-    get("/addressfixedwidth2html", (req, res) ->
-            {
-                return transformTextToXmlReturnThrowable(req.queryParams("text"), new File("src/main/resources/addressxml2html.xslt"));
-            }
-    );
+        //Demo 4: convert addresses in fixed width format to HTML.
+        get("/addressfixedwidth2html", (req, res) ->
+                {
+                    try {
+                        return transformTextToXml(req.queryParams("text"), new File("src/main/resources/addressxml2html.xslt"));
+                    } catch (Throwable t) {
+                        return t.toString();
+                    }
+                }
+        );
         
 Here is the first view of some XSL tranformation code. There is more in the code bundle.
 
@@ -554,39 +551,39 @@ Here is the first view of some XSL tranformation code. There is more in the code
 
 Here is the HTML output:
 
-<!DOCTYPE html SYSTEM "about:legacy-compat">
-<html>
-    <head>
-        <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <title>fixedML - fixed width - 2 records as XHTML using XSLT.</title>
-    </head>
-    <body>
-        <div id="person_0000000001">
-            <div class="name">Richard&nbsp;Nixon</div>
-            <div class="phone">+1 202-456-1111</div>
-            <div class="addressline">1600</div>
-            <div class="addressline">Pennsylvania Ave NW</div>
-            <div class="addressline"></div>
-            <div class="addressline"></div>
-            <div class="addressline"></div>
-            <div class="postalCode">DC 20500</div>
-            <div class="city">Washington</div>
-            <div class="countryIso">US</div>
-        </div>
-        <div id="person_0000000002">
-            <div class="name">Elvis&nbsp;Presley</div>
-            <div class="phone">+1 901-332-3322</div>
-            <div class="addressline">Graceland</div>
-            <div class="addressline">Elvis Presley Blvd</div>
-            <div class="addressline"></div>
-            <div class="addressline"></div>
-            <div class="addressline"></div>
-            <div class="postalCode">TN 38116</div>
-            <div class="city">Memphis</div>
-            <div class="countryIso">US</div>
-        </div>
-    </body>
-</html>     
+    <!DOCTYPE html SYSTEM "about:legacy-compat">
+    <html>
+        <head>
+            <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+            <title>fixedML - fixed width - 2 records as XHTML using XSLT.</title>
+        </head>
+        <body>
+            <div id="person_0000000001">
+                <div class="name">Richard&nbsp;Nixon</div>
+                <div class="phone">+1 202-456-1111</div>
+                <div class="addressline">1600</div>
+                <div class="addressline">Pennsylvania Ave NW</div>
+                <div class="addressline"></div>
+                <div class="addressline"></div>
+                <div class="addressline"></div>
+                <div class="postalCode">DC 20500</div>
+                <div class="city">Washington</div>
+                <div class="countryIso">US</div>
+            </div>
+            <div id="person_0000000002">
+                <div class="name">Elvis&nbsp;Presley</div>
+                <div class="phone">+1 901-332-3322</div>
+                <div class="addressline">Graceland</div>
+                <div class="addressline">Elvis Presley Blvd</div>
+                <div class="addressline"></div>
+                <div class="addressline"></div>
+                <div class="addressline"></div>
+                <div class="postalCode">TN 38116</div>
+                <div class="city">Memphis</div>
+                <div class="countryIso">US</div>
+            </div>
+        </body>
+    </html>     
 
 Now it is easy to read.
 
@@ -594,14 +591,15 @@ Note: With certain browsers, it is possible to perform the transform client-side
 
 #Transform to JSON
 
-Indented with an IDE:
-
-    //Demo 5: convert addresses in fixed width format to HTML.
-    get("/addressfixedwidth2json", (req, res) ->
-            {
-                return transformTextToXmlReturnThrowable(req.queryParams("text"), new File("src/main/resources/xml2json.xslt"));
-            }
-    );
+        get("/addressfixedwidth2json", (req, res) ->
+                {
+                    try {
+                        return transformTextToXml(req.queryParams("text"), new File("src/main/resources/xml2json.xslt"));
+                    } catch (Throwable t) {
+                        return t.toString();
+                    }
+                }
+        );
     
 Here is the output (formatted for readibility):
         

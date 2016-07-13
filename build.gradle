@@ -1,0 +1,13 @@
+group 'fixedML'
+version '1.0-SNAPSHOT'
+
+apply plugin: 'java'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.+'
+    compile group: 'com.sparkjava', name: 'spark-core', version: '2.5'
+}

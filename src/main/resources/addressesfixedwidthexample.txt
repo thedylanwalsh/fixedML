@@ -1,0 +1,17 @@
+000
+001         22016-07-09
+100
+1010000000001                       Richard                         Nixon
+200
+2010000000001                                              1600                               Pennsylvania Ave NW                                                                                                                                                                          Washington                                                          DCUS                      DC 20500       ZIP
+299
+301     +1 202-456-1111  WORK
+199
+100
+1010000000002                         Elvis                       Presley
+200
+2010000000002                                         Graceland                                Elvis Presley Blvd                                                                                                                                                                             Memphis                        Shelby                            TNUS                      TN 38116       ZIP
+299
+301     +1 901-332-3322  HOME
+199
+999

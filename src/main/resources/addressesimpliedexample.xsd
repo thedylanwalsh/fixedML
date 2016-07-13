@@ -1,0 +1,68 @@
+<!--
+    Copyright 2016 Dylan Walsh.
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see &lt;http://www.gnu.org/licenses/>-->
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="people" type="peopleType"/>
+  <xs:complexType name="phoneType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="phoneNumber"/>
+      <xs:element type="xs:string" name="phoneNumberType"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="addressType">
+    <xs:sequence>
+      <xs:element type="xs:byte" name="addressId"/>
+      <xs:element name="line1">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:maxLength value="10"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+      <xs:element type="xs:string" name="line2">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:maxLength value="50"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+      <xs:element type="xs:string" name="line3"/>
+      <xs:element type="xs:string" name="line4"/>
+      <xs:element type="xs:string" name="line5"/>
+      <xs:element type="xs:string" name="city"/>
+      <xs:element type="xs:string" name="county"/>
+      <xs:element type="xs:string" name="state"/>
+      <xs:element type="xs:string" name="countryIso"/>
+      <xs:element type="xs:string" name="postalCode"/>
+      <xs:element type="xs:string" name="postalCodeType"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="peopleType">
+    <xs:sequence>
+      <xs:element type="xs:byte" name="personCount"/>
+      <xs:element type="xs:date" name="creationDate"/>
+      <xs:element type="personType" name="person" maxOccurs="unbounded" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="personType">
+    <xs:sequence>
+      <xs:element type="xs:byte" name="personId"/>
+      <xs:element type="xs:string" name="firstName"/>
+      <xs:element type="xs:string" name="lastName"/>
+      <xs:element type="addressType" name="address"/>
+      <xs:element type="phoneType" name="phone"/>
+    </xs:sequence>
+  </xs:complexType>
+</xs:schema>

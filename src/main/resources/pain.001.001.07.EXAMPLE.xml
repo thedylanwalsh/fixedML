@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dw:Cdtrs xmlns:dw="http://dylanwalsh.net/fixedML" xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.001.07">
+    <Cdtr>
+        <Nm>Richard Nixon</Nm>
+        <PstlAdr>
+            <StrtNm>Pennsylvania Ave NW</StrtNm>
+            <BldgNb>1600</BldgNb>
+            <PstCd>DC 20500</PstCd>
+            <TwnNm>Washington</TwnNm>
+            <Ctry>US</Ctry>
+        </PstlAdr>
+        <CtctDtls>
+            <PhneNb>+1 202-456-1111WORK</PhneNb>
+        </CtctDtls>
+    </Cdtr>
+    <Cdtr>
+        <Nm>Elvis Presley</Nm>
+        <PstlAdr>
+            <StrtNm>Elvis Presley Blvd</StrtNm>
+            <BldgNb>Graceland</BldgNb>
+            <PstCd>TN 38116</PstCd>
+            <TwnNm>Memphis</TwnNm>
+            <Ctry>US</Ctry>
+        </PstlAdr>
+        <CtctDtls>
+            <PhneNb>+1 901-332-3322HOME</PhneNb>
+        </CtctDtls>
+    </Cdtr>
+</dw:Cdtrs>

@@ -1,0 +1,52 @@
+{
+  "people": {
+    "personCount": 2,
+    "creationDate": "2016-07-09",
+    "person": {
+      "personId": "0000000001",
+      "firstName": "Richard",
+      "lastName": "Nixon",
+      "address": {
+        "addressId": "0000000001",
+        "line1": 1600,
+        "line2": "Pennsylvania Ave NW",
+        "line3": null,
+        "line4": null,
+        "line5": null,
+        "city": "Washington",
+        "county": null,
+        "state": "DC",
+        "countryIso": "US",
+        "postalCode": "DC 20500",
+        "postalCodeType": "ZIP"
+      },
+      "phone": {
+        "phoneNumber": "+1 202-456-1111",
+        "phoneNumberType": "WORK"
+      }
+    },
+    "person": {
+      "personId": "0000000002",
+      "firstName": "Elvis",
+      "lastName": "Presley",
+      "address": {
+        "addressId": "0000000002",
+        "line1": "Graceland",
+        "line2": "Elvis Presley Blvd",
+        "line3": null,
+        "line4": null,
+        "line5": null,
+        "city": "Memphis",
+        "county": "Shelby",
+        "state": "TN",
+        "countryIso": "US",
+        "postalCode": "TN 38116",
+        "postalCodeType": "ZIP"
+      },
+      "phone": {
+        "phoneNumber": "+1 901-332-3322",
+        "phoneNumberType": "HOME"
+      }
+    }
+  }
+}

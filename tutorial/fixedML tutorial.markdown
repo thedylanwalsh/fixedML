@@ -17,8 +17,13 @@ integration, software quality and programmer serenity.
 
 The range of topics in this document is large. The following topics are raised here, but will not be demonstrated or coded until a follow up is written:
 
-- concurrent and serial Java 8 map-reduce code samples.
+- map-reduce
+    - concurrent and serial Java 8 map-reduce code samples.
     - code to auto-generate gigabytes of test data to benchmark both approaches.
+
+- validation, unit and integration testing.
+ - focus on W3C XML Schema.
+
 
 ##What we are going to do today.
 This tutorial demonstrates an approach to data integration, providing XML output or transformation from legacy data

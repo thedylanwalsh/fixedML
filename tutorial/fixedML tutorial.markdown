@@ -1,11 +1,11 @@
 # fixedML
 Process legacy data formats in modern ways - XML transformation without source XML
 
-COPYRIGHT 2016 Dylan Walsh. Code is available at https://github.com/thedylanwalsh/fixedML 
+COPYRIGHT 2016, 2017 Dylan Walsh. Code is available at https://github.com/thedylanwalsh/fixedML
 
-#fixedML - RESTful XML transformation with non-XML sources.
+# fixedML - RESTful XML transformation with non-XML sources.
 
-##How a programmer may process legacy data formats in a modern way.
+## How a programmer may process legacy data formats in a modern way.
 Legacy code is code that passed through acceptance testing and provides measurable value to the
 client in the production environment.
 
@@ -17,15 +17,10 @@ integration, software quality and programmer serenity.
 
 The range of topics in this document is large. The following topics are raised here, but will not be demonstrated or coded until a follow up is written:
 
-- map-reduce
-    - concurrent and serial Java 8 map-reduce code samples.
+- concurrent and serial Java 8 map-reduce code samples.
     - code to auto-generate gigabytes of test data to benchmark both approaches.
 
-- validation, unit and integration testing.
- - focus on W3C XML Schema.
-
-
-##What we are going to do today.
+## What we are going to do today.
 This tutorial demonstrates an approach to data integration, providing XML output or transformation from legacy data
 sources. While it has the potential to become a framework or a library, it is presented here as a tutorial with sample
 code.
@@ -39,10 +34,9 @@ To apply this approach, the reader also needs skills in:
 such as Saxon by Saxonica.
 - XML parsing using event driven or streaming APIs such as SAX ('Simple API for XML'.)
 
-*The design principles presented here are applicable to other platforms such as .NET, but that is left as an exercise
-for the reader.*
+*The design principles presented here are applicable to other platforms such as .NET.*
 
-#History and objective of this approach.
+# History and objective of this approach.
 In 2007 I developed a Java framework for interfacing data between text formats (fixed width and delimited), a relational
 database and SOAP web services, for a household-name client. One application of that framework was converting very
 complex hierarchical fixed width files to and from various XML schemas for use by a partner company.
@@ -63,14 +57,14 @@ about how I would build it today, and to utilise specific Java 8 features in dep
 |Execution|Batch|RESTful web services|
 |Container|Spring IoC invoked on command line, proprietary interface framework.|None - micro webserver used as library, no inversion of control.|
 
-#Let's get a live web service running as early as possible!
+# Let's get a live web service running as early as possible!
 - start a web server.
 - return the request text wrapped in an element called `<rootElement>`
 - open in browser.
 
 Here is the Java:
 
-    package net.dylanwalsh.fixedML;
+    package com.fixedML;
 
     import static spark.Spark.*;
 
@@ -78,32 +72,29 @@ Here is the Java:
         public static void main(String[] args) {
             spark.Spark.staticFileLocation("/web");
 
-            // Demo 1: By default, opening this URL in your browser will return XML
-            //
-            // http://localhost:4567/echoTextWrappedInTags?text=Hello%20World
-            //
-            // Use view source in your browser to see the XML.
+            //Demo 1: By default, opening this URL in your browser will return XML:
+            //http://localhost:4567/echoTextWrappedInTags?text=Hello%20World
+            //Use view source in your browser to see the XML.
             get("/echoTextWrappedInTags", (req, res) ->
-                    {
-                        return "<?xml version=\"1.0\" encoding=\"UTF-8\"?><rootElement>"
-                                + req.queryParams("text")
-                                + "</rootElement>";
-                    }
+                    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+                            + "<rootElement>"
+                            + req.queryParams("text")
+                            + "</rootElement>"
             );
         }
     }
 
-The XML declaration, encoding, and root element are not required for an XML document, but without them it would not
-look like XML to most people.
+The XML declaration, encoding, and root element are not required for an XML document, but are included to
+look like typical XML.
 
-Using HTTP request parameters for huge data files might be silly. A more realistic scenario is a batch conversion of
+Using HTTP request parameters for huge data files would be unwise in production. A more realistic scenario is a batch conversion of
 files. If the output format is much smaller than the input files (as it was in my real world project) then a compromise
-approach would be viable where RESTful web service transform big files on the filesystem into outputs returned by HTTP.
+approach would be viable where a RESTful web service transform big files on the filesystem into outputs returned by HTTP.
 
-#What is XSL Transformation, why use it, and why use it without a source document?
+# What is XSL Transformation, why use it, and why use it without a source document?
 In 1998, the W3C initiated a project to define technology for presenting XML - XML Stylesheet Language. This has
 two parts - Transformations and Formatting Objects. The transformation language became incredibly successful outside of
-its original mission, and was adopted by developers for XML to XML transformation.
+its original scope, and was adopted by developers for XML to XML transformation.
 
 |input|transformation|output|
 |---|---|---|
@@ -111,9 +102,9 @@ its original mission, and was adopted by developers for XML to XML transformatio
 |Conceptually, a tree of nodes.| Rules which select nodes in the XML, and apply a template to generate output.| XML, HTML or text.|
 
 The relative novelty being presented here is to supply a tree of nodes (in the form of XML parsing events) as the input
-to the XSLT, without there being any XML (any serialized XML) because we are parsing a text format.
+to the XSLT, without there being any XML (literally any serialized XML) because we are parsing a flat text format.
 
-##XSLT 3.0 and Streaming
+## XSLT 3.0 and Streaming
 XSLT code can make reference to prior nodes in the document when processing the current node. Ergo, XSLT implementations
 maintain an internal object model of the source data, in memory. XSLT 3.0 introduced a streaming feature, where the
 code can be written in a streaming manner. This would remove the need to store a representation of source data in
@@ -123,14 +114,14 @@ The benefit of this would be to alleviate memory issues when processing humongou
 JDK 8, but is available in third party libraries. There are alternative approaches, such as processing the source data
 in appropriate chunks.
 
-#How about doing something with XSLT in our web service now?
+# How about doing something with XSLT in our web service now?
 
 Here is an existing transformation to create JSON from arbitrary XML:
 https://github.com/doekman/xml2json-xslt/blob/master/xml2json.xslt
 
 It is in the classpath in the resources directory of the code bundle.
 
-We need to add a utility method to Address2Xml.java:
+We need to add a transform utility method to Address2Xml.java:
 
     private static String transform(String xml, File transformFile) throws TransformerException {
         try {
@@ -149,16 +140,12 @@ We need to add a utility method to Address2Xml.java:
 
 Now we can add it to the web server as a new operation:
 
-    //Demo 2: convert arbitrary XML to JSON using XSLT 1.0. Launch and open this URL in your browser:
-    //
-    //http://localhost:4567/xml2Json?xml=<positions><point3d><x>1</x><y>1</y><z>1</z></point3d><point3d><x>2</x><y>2</y><z>2</z></point3d></positions>
-    //
-    //Use view source in your browser to see the JSON.
-    get("/xml2Json", (req, res) ->
-            {
-                return transform(req.queryParams("xml"), new File("src/main/resources/xml2json.xslt"));
-            }
-    );
+        //Demo 2: convert arbitrary XML to JSON using XSLT 1.0. Launch and open this URL in your browser:
+        //http://localhost:4567/xml2json?xml=<positions><point3d><x>1</x><y>1</y><z>1</z></point3d><point3d><x>2</x><y>2</y><z>2</z></point3d></positions>
+        //Use view source in your browser to see the JSON.
+        get("/xml2json", (req, res) ->
+                transform(req.queryParams("xml"), new File("src/main/resources/xml2json.xslt"))
+        );
 
 Invoking that web service with this XML:
 
@@ -174,14 +161,14 @@ Invoking that web service with this XML:
 
  The XSLT library we chose does not name the point3d nodes, but represents them as array items.
 
-#Production code versus a breezy tutorial - risk mitigation.
+# Production code versus a breezy tutorial - risk mitigation.
 
 The following concerns are not addressed in this tutorial but need to be
 for mission-critical production code.
 
-##Unit testing and automated integration testing
-... should be mandatory on your team projects. I have nothing original to
- add to the topic today.
+## Unit testing and automated integration testing
+... should be mandatory on serious projects. Nothing to
+ add to that topic in this tutorial.
 
 ## Validation of input and output
 The input fixed width or delimited data may not comply with the relevant
@@ -194,10 +181,10 @@ for the source data, you can write a schema to validate it using XML
 Schema.
 
 After we have defined our fixed width input format, we will
-revisit this topic under testing and validation in the next article..
+revisit this topic under testing and validation in the next article.
 
-##Security
-The sample code does not validate inputs and black hats and white hats
+## Security
+The sample code does not validate inputs. Black hats and white hats
 would have a field day exploring the various injection possibilities if
 you ran that publicly.
 
@@ -206,13 +193,13 @@ first piece code uses string concatenation to generate XML.
 Enterprise-quality code should use XML APIs to create the XML document for conformance and security.
 
 ## Mutual validation of data exchanged with 3rd parties
-This minimises finger pointing between business partners during integration testing.
+This minimises finger pointing between teams and organizations during integration testing.
 
 ## Logging
 Logging the work to be done at the outset, key stages thereafter and the amount of items processed at the end of a
 business critical job, will prove invaluable in a production crisis.
 
-#Background - What are flat, fixed width and delimited file formats?
+# Background - What are flat, fixed width and delimited file formats?
 
 Flat files is a term typically used to refer to text files (e.g ASCII or
 Unicode) containing structured data.
@@ -226,44 +213,46 @@ of the delimiter used. Delimited files are variable width.
 Fixed width files allocate a fixed amount of space in the file for every field,
 regardless of whether the field is being used in a record or the length of the
 item. The remainder is typically padded with spaces. So if there is a name field
-of twenty characters length, John's name will appear as (using full stops to mark where spaces would be):
+of twenty characters length, John's name will appear as (using full stops for readability to mark where spaces would be):
 
     'John................'
 
 John may find this satisfactory, but Srimadaddankithirumalavaraahavenkatathaa may deem it
 inadequate. The advantages of fixed width include the fact that COBOL coders
-like it and unlike delimited files, it does not need you to escape the delimiter.
+like it and unlike delimited files, it does not require you to escape a delimiter character.
 
-##This tutorial focuses on fixed width rather than delimited formats
-Formats like CSV are easier to process - various approaches like REGEX can split CSV lines, Java 8 stream tutorials typically use it as an example. The main gotcha is escaping the delimiter characters, which isn't an issue in many applications where the delimiter character never occurs in the data.  
+## This tutorial focuses on fixed width rather than delimited formats
+Formats like CSV are easier to process - various approaches like REGEX can split CSV lines, Java 8 stream tutorials typically use it as an example.
+The main gotcha is escaping the delimiter characters, which isn't an issue in many applications where the delimiter character never occurs in the data.
 
-##The term 'flat files' is often a misnomer.
+## The term 'flat files' is often a misnomer.
 A programmer may think of flat meaning a two dimensional array of items. In
 reality, many 'flat' file formats have multiple record types, metadata and
 may even be hierarchical. This is not flat data.
 
 Consider a simple CSV file. They often include a header row with the names of the columns. That row
-is different from the others and provides metadata. There may be a header or footer with record counts, the creation data, checksums or other data common to the whole file. Those records have completely different numbers of columns
+is different from the others and provides metadata. There may be a header or footer with record counts, the creation data, checksums or other data common to the whole file.
+Those records have completely different numbers of columns
 and data types from the main data. The next level of complexity is where there are multiple rows of different types.
 
 Eventually you will encounter deeply hierarchical delimited or fixed width files, where the vendor ought to have
 considered XML or JSON.
 
-##Fixed width files may be sparsely populated.
+## Fixed width files may be sparsely populated.
 We can see the fixed width name example does not use space efficiently:
 
     'John................'
 
 Imagine a middle name field, where the application does not have middle names for 98% of the customers. A design with
-lots more optional fields will inevitably be 90%+ whitespace.
+many many more optional fields will inevitably be 90% whitespace or worse.
 
-In such cases, conversion to XML may actually compress the data by a multiple of e.g. 10 times.
+In such cases, conversion to XML may actually compress the data by a multiple e.g. 10 times.
 
-#Example input - a hierarchical fixed width data format for postal addresses.
+# Example input - a hierarchical fixed width data format for postal addresses.
 
 The fixed with data format is defined with a table of records, fields, positions, data types and field names.
 
-##Format specification
+## Format specification
 
 |record id|field name|field column|length|data type|
 |---|---|---|---|---|
@@ -299,7 +288,7 @@ This would make it an ideal candidate for XML or even JSON, but fixed width was 
 We have a root record 'persons'. This is for convenience - your real world problem may require you to wrap it in one in the parsing code to comply with XML rules. The persons record starts with a 000 record and ends
 with a 999. It contains a 001 record with the file number of person records and the creationDate.  This is simplified from a real world example. The key point is there are two container records - person and addresses. A person record hold an addresses record and multiple phoneNumber records. It begins with a 100 start record and ends with a 199 end record. An addresses record contains multiple atomic address records.  It begins with a 100 start record and ends with a 199 end record. The person also holds atomic phoneNumber records (type 301).
 
-##Example data.
+## Example data.
 
     000
     001         22016-07-09
@@ -321,7 +310,7 @@ with a 999. It contains a 001 record with the file number of person records and 
 
 This fictional example is relatively simple. However you will still see how the fixed width format has sparsely populated data, and as a consequence, massive redundant whitespace. I have seen formats where lines could be 2000 characters long. In those extreme cases, the XML version of the data can be five to ten times shorter.
 
-#The XML-less XML transformation.
+# The XML-less XML transformation.
 
 |Approach|Input|Parsing|Transformation|Output|
 |---|---|---|---|---|
@@ -331,12 +320,14 @@ This fictional example is relatively simple. However you will still see how the 
 The conventional approach means you need XML documents to use XML techniques. If your data is not XML, you have to parse twice e.g. parse the fixed width file and convert to XML, then parse the XML. fixedML removes the need for XML documents, the transformer process a virtual XML document. The structure of that XML is the 'implied XML schema.'
 
 
-#The implied XML schema of the input.
+# The implied XML schema of the input.
 
 What is a reasonable design for XML to represent the addresses data model? There is no single correct answer, but most
 sensible XML programmers will come up with something similar, with different in choices about using elements vs.
 attributes, container elements etc. Here I have chosen only to use elements and not to introduce container elements
 around the repeating `address` or `phone` elements.
+
+The same data in XML format:
 
     <people>
         <personCount>2</personCount>
@@ -389,7 +380,7 @@ around the repeating `address` or `phone` elements.
         </person>
     </people>
 
-#The desired output XML schema.
+# The desired output XML schema.
 We will use a subset of ISO 200022 XML, it doesn't get more enterprise-level or real world than that.
 ISO 20022 was created by the International Standards Organization for electronic data interchange between financial
 institutions. It is a big deal in banking.
@@ -398,7 +389,7 @@ The official schema file is called `pain.001.001.07.xsd`, but here `pain` stands
 we only have name, address and postal information, so we will just create ISO creditor records for our `person` records in
 the source data.
 
-#The transformation.
+# The transformation.
 The code bundle for this tutorial includes the file `addressxml2fixedwidth.xslt`, which outputs the following partial
 ISO 20022 XML:
 
@@ -432,7 +423,7 @@ ISO 20022 XML:
         </Cdtr>
     </dw:Cdtrs>
 
-#Hold up! We do not have input XML - the input data is fixed width.
+# Hold up! We do not have input XML - the input data is fixed width.
 Time to combine XSLT with a handler that fires SAX XML parsing events in response to fixed with data nodes:
 
 
@@ -515,14 +506,18 @@ This first approach uses Java 7 switch-on-strings:
 
 All that remains is to add a method to create the web service in the 'main()' method.
 
-#Transform to HTML
+# Transform to HTML
 
-    //Demo 4: convert addresses in fixed width format to HTML.
-    get("/addressfixedwidth2html", (req, res) ->
-            {
-                return transformTextToXmlReturnThrowable(req.queryParams("text"), new File("src/main/resources/addressxml2html.xslt"));
-            }
-    );
+        //Demo 4: convert addresses in fixed width format to HTML.
+        get("/addressfixedwidth2html", (req, res) ->
+                {
+                    try {
+                        return transformTextToXml(req.queryParams("text"), new File("src/main/resources/addressxml2html.xslt"));
+                    } catch (Throwable t) {
+                        return t.toString();
+                    }
+                }
+        );
         
 Here is the first view of some XSL tranformation code. There is more in the code bundle.
 
@@ -559,54 +554,55 @@ Here is the first view of some XSL tranformation code. There is more in the code
 
 Here is the HTML output:
 
-<!DOCTYPE html SYSTEM "about:legacy-compat">
-<html>
-    <head>
-        <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <title>fixedML - fixed width - 2 records as XHTML using XSLT.</title>
-    </head>
-    <body>
-        <div id="person_0000000001">
-            <div class="name">Richard&nbsp;Nixon</div>
-            <div class="phone">+1 202-456-1111</div>
-            <div class="addressline">1600</div>
-            <div class="addressline">Pennsylvania Ave NW</div>
-            <div class="addressline"></div>
-            <div class="addressline"></div>
-            <div class="addressline"></div>
-            <div class="postalCode">DC 20500</div>
-            <div class="city">Washington</div>
-            <div class="countryIso">US</div>
-        </div>
-        <div id="person_0000000002">
-            <div class="name">Elvis&nbsp;Presley</div>
-            <div class="phone">+1 901-332-3322</div>
-            <div class="addressline">Graceland</div>
-            <div class="addressline">Elvis Presley Blvd</div>
-            <div class="addressline"></div>
-            <div class="addressline"></div>
-            <div class="addressline"></div>
-            <div class="postalCode">TN 38116</div>
-            <div class="city">Memphis</div>
-            <div class="countryIso">US</div>
-        </div>
-    </body>
-</html>     
+    <!DOCTYPE html SYSTEM "about:legacy-compat">
+    <html>
+        <head>
+            <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+            <title>fixedML - fixed width - 2 records as XHTML using XSLT.</title>
+        </head>
+        <body>
+            <div id="person_0000000001">
+                <div class="name">Richard&nbsp;Nixon</div>
+                <div class="phone">+1 202-456-1111</div>
+                <div class="addressline">1600</div>
+                <div class="addressline">Pennsylvania Ave NW</div>
+                <div class="addressline"></div>
+                <div class="addressline"></div>
+                <div class="addressline"></div>
+                <div class="postalCode">DC 20500</div>
+                <div classl="city">Washington</div>
+                <div class="countryIso">US</div>
+            </div>
+            <div id="person_0000000002">
+                <div class="name">Elvis&nbsp;Presley</div>
+                <div class="phone">+1 901-332-3322</div>
+                <div class="addressline">Graceland</div>
+                <div class="addressline">Elvis Presley Blvd</div>
+                <div class="addressline"></div>
+                <div class="addressline"></div>
+                <div class="addressline"></div>
+                <div class="postalCode">TN 38116</div>
+                <div class="city">Memphis</div>
+                <div class="countryIso">US</div>
+            </div>
+        </body>
+    </html>     
 
 Now it is easy to read.
 
 Note: With certain browsers, it is possible to perform the transform client-side, thereby preserving server resources.
 
-#Transform to JSON
+# Transform to JSON
 
-Indented with an IDE:
-
-    //Demo 5: convert addresses in fixed width format to HTML.
-    get("/addressfixedwidth2json", (req, res) ->
-            {
-                return transformTextToXmlReturnThrowable(req.queryParams("text"), new File("src/main/resources/xml2json.xslt"));
-            }
-    );
+        get("/addressfixedwidth2json", (req, res) ->
+                {
+                    try {
+                        return transformTextToXml(req.queryParams("text"), new File("src/main/resources/xml2json.xslt"));
+                    } catch (Throwable t) {
+                        return t.toString();
+                    }
+                }
+        );
     
 Here is the output (formatted for readibility):
         
@@ -665,8 +661,8 @@ Here is the output (formatted for readibility):
 
 JSON is ideal for client side Javascript consumption.
 
-#To develop this idea into a framework
-Some ideas:
+# To develop this idea into a framework
+Some ideas of features that build on the ideas present so far:
 
 - Changes in input fixed width data due to bugs or undocumented changes can throw off the alignment in the parsing. This is a shortcoming of fixed width formats. Mitigation: Ease the use of XML schema to 'sanity' check the inputs. Support easy validation and the generation of the 'implied XML schema' from the parsing code.
 - Support more of the XML infoset e.g. attributes, namespaces etc. Some users may not then require any XSL transformation, when the project they are in can except a new XML format rather than a predefined one.
@@ -677,7 +673,7 @@ Some ideas:
 
 The most ambitious goal would be to evolve this to the point where it would provide a programmer-centric alternative to monolithic and proprietary ETL (Extract, Transform and Load), EAI (Enterprise Application Integration) or ESB (Enterprise Service Bus) products. This would be analogous to the relationship of micro web frameworks (such as the Java Spark library used in this tutorial) to heavyweight Enterprise Java servers.
 
-##Map Reduce
+## Map Reduce
 Map Reduce is a strategy to process large amounts of work in parallel, even on separate machines (a cluster).
 
 There is no guarantee such an approach will yield better performance depending on the input/output infrastructure

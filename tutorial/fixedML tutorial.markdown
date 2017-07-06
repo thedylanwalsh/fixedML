@@ -20,7 +20,7 @@ The range of topics in this document is large. The following topics are raised h
 - concurrent and serial Java 8 map-reduce code samples.
     - code to auto-generate gigabytes of test data to benchmark both approaches.
 
-##What we are going to do today.
+## What we are going to do today.
 This tutorial demonstrates an approach to data integration, providing XML output or transformation from legacy data
 sources. While it has the potential to become a framework or a library, it is presented here as a tutorial with sample
 code.

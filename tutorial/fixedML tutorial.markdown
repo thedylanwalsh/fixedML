@@ -1,11 +1,11 @@
-# fixedML
-Process legacy data formats in modern ways - XML transformation without source XML
+# fixedML - RESTful services via XML transformation with non-XML sources
+Process legacy data formats in modern ways
 
 COPYRIGHT 2016, 2017 Dylan Walsh. Code is available at https://github.com/thedylanwalsh/fixedML
 
-# fixedML - RESTful XML transformation with non-XML sources.
 
-## How a programmer may process legacy data formats in a modern way.
+
+## How a programmer may process legacy data formats in a modern way
 Legacy code is code that passed through acceptance testing and provides measurable value to the
 client in the production environment.
 
@@ -13,14 +13,14 @@ In dealing with a legacy data format, the programmer may wish the data were in a
 It is possible to combine the raw legacy data formats with modern techniques. This supports unit testing, continuous
 integration, software quality and programmer serenity.
 
-## This tutorials scope.
+## This tutorials scope
 
 The range of topics in this document is large. The following topics are raised here, but will not be demonstrated or coded until a follow up is written:
 
 - concurrent and serial Java 8 map-reduce code samples.
     - code to auto-generate gigabytes of test data to benchmark both approaches.
 
-## What we are going to do today.
+## What we are going to do today
 This tutorial demonstrates an approach to data integration, providing XML output or transformation from legacy data
 sources. While it has the potential to become a framework or a library, it is presented here as a tutorial with sample
 code.
@@ -36,7 +36,7 @@ such as Saxon by Saxonica.
 
 *The design principles presented here are applicable to other platforms such as .NET.*
 
-# History and objective of this approach.
+# History and objective of this approach
 In 2007 I developed a Java framework for interfacing data between text formats (fixed width and delimited), a relational
 database and SOAP web services, for a household-name client. One application of that framework was converting very
 complex hierarchical fixed width files to and from various XML schemas for use by a partner company.
@@ -161,7 +161,7 @@ Invoking that web service with this XML:
 
  The XSLT library we chose does not name the point3d nodes, but represents them as array items.
 
-# Production code versus a breezy tutorial - risk mitigation.
+# Production code versus a breezy tutorial - risk mitigation
 
 The following concerns are not addressed in this tutorial but need to be
 for mission-critical production code.
@@ -225,7 +225,7 @@ like it and unlike delimited files, it does not require you to escape a delimite
 Formats like CSV are easier to process - various approaches like REGEX can split CSV lines, Java 8 stream tutorials typically use it as an example.
 The main gotcha is escaping the delimiter characters, which isn't an issue in many applications where the delimiter character never occurs in the data.
 
-## The term 'flat files' is often a misnomer.
+## The term 'flat files' is often a misnomer
 A programmer may think of flat meaning a two dimensional array of items. In
 reality, many 'flat' file formats have multiple record types, metadata and
 may even be hierarchical. This is not flat data.
@@ -238,7 +238,7 @@ and data types from the main data. The next level of complexity is where there a
 Eventually you will encounter deeply hierarchical delimited or fixed width files, where the vendor ought to have
 considered XML or JSON.
 
-## Fixed width files may be sparsely populated.
+## Fixed width files may be sparsely populated
 We can see the fixed width name example does not use space efficiently:
 
     'John................'
@@ -248,7 +248,7 @@ many many more optional fields will inevitably be 90% whitespace or worse.
 
 In such cases, conversion to XML may actually compress the data by a multiple e.g. 10 times.
 
-# Example input - a hierarchical fixed width data format for postal addresses.
+# Example input - a hierarchical fixed width data format for postal addresses
 
 The fixed with data format is defined with a table of records, fields, positions, data types and field names.
 
@@ -288,7 +288,7 @@ This would make it an ideal candidate for XML or even JSON, but fixed width was 
 We have a root record 'persons'. This is for convenience - your real world problem may require you to wrap it in one in the parsing code to comply with XML rules. The persons record starts with a 000 record and ends
 with a 999. It contains a 001 record with the file number of person records and the creationDate.  This is simplified from a real world example. The key point is there are two container records - person and addresses. A person record hold an addresses record and multiple phoneNumber records. It begins with a 100 start record and ends with a 199 end record. An addresses record contains multiple atomic address records.  It begins with a 100 start record and ends with a 199 end record. The person also holds atomic phoneNumber records (type 301).
 
-## Example data.
+## Example data
 
     000
     001         22016-07-09
@@ -310,7 +310,7 @@ with a 999. It contains a 001 record with the file number of person records and 
 
 This fictional example is relatively simple. However you will still see how the fixed width format has sparsely populated data, and as a consequence, massive redundant whitespace. I have seen formats where lines could be 2000 characters long. In those extreme cases, the XML version of the data can be five to ten times shorter.
 
-# The XML-less XML transformation.
+# The XML-less XML transformation
 
 |Approach|Input|Parsing|Transformation|Output|
 |---|---|---|---|---|
@@ -320,7 +320,7 @@ This fictional example is relatively simple. However you will still see how the 
 The conventional approach means you need XML documents to use XML techniques. If your data is not XML, you have to parse twice e.g. parse the fixed width file and convert to XML, then parse the XML. fixedML removes the need for XML documents, the transformer process a virtual XML document. The structure of that XML is the 'implied XML schema.'
 
 
-# The implied XML schema of the input.
+# The implied XML schema of the input
 
 What is a reasonable design for XML to represent the addresses data model? There is no single correct answer, but most
 sensible XML programmers will come up with something similar, with different in choices about using elements vs.
@@ -380,7 +380,7 @@ The same data in XML format:
         </person>
     </people>
 
-# The desired output XML schema.
+# The desired output XML schema
 We will use a subset of ISO 200022 XML, it doesn't get more enterprise-level or real world than that.
 ISO 20022 was created by the International Standards Organization for electronic data interchange between financial
 institutions. It is a big deal in banking.
@@ -389,7 +389,7 @@ The official schema file is called `pain.001.001.07.xsd`, but here `pain` stands
 we only have name, address and postal information, so we will just create ISO creditor records for our `person` records in
 the source data.
 
-# The transformation.
+# The transformation
 The code bundle for this tutorial includes the file `addressxml2fixedwidth.xslt`, which outputs the following partial
 ISO 20022 XML:
 
@@ -423,7 +423,7 @@ ISO 20022 XML:
         </Cdtr>
     </dw:Cdtrs>
 
-# Hold up! We do not have input XML - the input data is fixed width.
+# Hold up! We do not have input XML - the input data is fixed width
 Time to combine XSLT with a handler that fires SAX XML parsing events in response to fixed with data nodes:
 
 
@@ -664,7 +664,7 @@ JSON is ideal for client side Javascript consumption.
 # To develop this idea into a framework
 Some ideas of features that build on the ideas present so far:
 
-- Changes in input fixed width data due to bugs or undocumented changes can throw off the alignment in the parsing. This is a shortcoming of fixed width formats. Mitigation: Ease the use of XML schema to 'sanity' check the inputs. Support easy validation and the generation of the 'implied XML schema' from the parsing code.
+- Changes in the input fixed width data due to bugs or undocumented changes can throw off the alignment in the parsing. This is a shortcoming of fixed width formats. Mitigation: Ease the use of XML schema to 'sanity' check the inputs. Support easy validation and the generation of the 'implied XML schema' from the parsing code.
 - Support more of the XML infoset e.g. attributes, namespaces etc. Some users may not then require any XSL transformation, when the project they are in can except a new XML format rather than a predefined one.
 - Beef up exception handling.
 - Logging.

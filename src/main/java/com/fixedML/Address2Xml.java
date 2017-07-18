@@ -27,10 +27,11 @@ import javax.xml.transform.sax.TransformerHandler;
 import static javax.xml.transform.OutputKeys.INDENT;
 import static spark.Spark.*;
 
+//TODO Here is an idea for a UI dev looking for an open source project:
+//Make a HTML5 designer that takes a sample data file and colour highlights
+//the fields so the alignment shows you've gotten the columns correct.
 public class Address2Xml {
     public static void main(String[] args) {
-        spark.Spark.staticFileLocation("/web");
-
         //Demo 1: By default, opening this URL in your browser will return XML:
         //http://localhost:4567/echoTextWrappedInTags?text=Hello%20World
         //Use view source in your browser to see the XML.
@@ -75,7 +76,7 @@ public class Address2Xml {
                 }
         );
 
-        //Demo 5: convert addresses in fixed width format to HTML.
+        //Demo 5: convert addresses in fixed width format to JSON.
         get("/addressfixedwidth2json", (req, res) ->
                 {
                     try {

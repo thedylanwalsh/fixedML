@@ -424,8 +424,7 @@ ISO 20022 XML:
     </dw:Cdtrs>
 
 # Hold up! We do not have input XML - the input data is fixed width
-Time to combine XSLT with a handler that fires SAX XML parsing events in response to fixed with data nodes:
-
+Time to combine XSLT with a handler that fires SAX XML parsing events in response to fixed with data nodes. This first part hooks up a transformation to the handler we need to feed events to:
 
     private static String transformTextToXml(String text, File xslt) {
         TransformerHandler handler = null;
@@ -442,12 +441,10 @@ Time to combine XSLT with a handler that fires SAX XML parsing events in respons
         StringWriter stringWriter = new StringWriter();
         handler.setResult(new StreamResult(stringWriter));
 
-This first part hooks up a transformation to the handler we need to feed events to.
 
 The next part is splitting and parsing the fixed width lines. A REGEX will take care of the former.
 
-The LineXml class is the only framework we have or need so far. It encapsulates one line of data and the SAX (JAXP) handler. It is written in a fluent API style - a little like StringBuilder in that the methods return itself and allow chaining.
-
+The LineXml class is the only framework we have or need so far. It encapsulates one line of data and the SAX (JAXP) handler, parsing the fixed width line and firing off XML parsing events to the handler. It is written in a fluent API style - a little like StringBuilder in that the methods return itself and allow chaining. The full code for that class [is here in the src folder](https://github.com/thedylanwalsh/fixedML/blob/master/src/main/java/com/fixedML/LineXml.java).
 This first approach uses Java 7 switch-on-strings:
 
         String[] lines = text.split("\\r?\\n");
@@ -518,20 +515,20 @@ All that remains is to add a method to create the web service in the 'main()' me
                     }
                 }
         );
-        
+
 Here is the first view of some XSL tranformation code. There is more in the code bundle.
 
     <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
         <xsl:output method="html" indent="yes" doctype-system="about:legacy-compat"/>
         <xsl:strip-space elements="*"/>
-    
+
         <xsl:template match="/people">
             <html>
                 <head><title>fixedML - fixed width - 2 records as XHTML using XSLT.</title></head>
                 <body><xsl:apply-templates select="person"/></body>
             </html>
         </xsl:template>
-    
+
         <xsl:template match="person">
             <div id="person_{personId}">
                 <div class="name"><xsl:value-of select="firstName"/>&#xA0;<xsl:value-of select="lastName"/></div>
@@ -586,7 +583,7 @@ Here is the HTML output:
                 <div class="countryIso">US</div>
             </div>
         </body>
-    </html>     
+    </html>
 
 Now it is easy to read.
 
@@ -603,9 +600,9 @@ Note: With certain browsers, it is possible to perform the transform client-side
                     }
                 }
         );
-    
+
 Here is the output (formatted for readibility):
-        
+
     {
       "people": {
         "personCount": 2,
